@@ -1,0 +1,51 @@
+version: '3'
+services:
+  postgresql:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: 1225Qw
+      POSTGRES_DB: first_data
+      POSTGRES_USER: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data.sql:/docker-entrypoint-initdb.d/data.sql
+  server:
+    build: /osnova
+    ports:
+      - '8081:8081'
+#    restart: always
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql:5432/postgres?createIfNotExists=true
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 1225Qw
+      SERVER_PORT: 8081
+    depends_on:
+      - postgresql
+  redis:
+    image: redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis-data:/data
+  spring:
+    build: /servis
+    ports:
+      - '8082:8082'
+#    restart: always
+    environment:
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      SERVER_PORT: 8082
+    depends_on:
+      - redis
+  react-app:
+    build:
+      context: ../front
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+volumes:
+  postgresql-data:
+  redis-data:
